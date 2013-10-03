@@ -51,9 +51,10 @@ func (f *IPFilter) AddIP(ip net.IP) {
 }
 
 func (f *IPFilter) AddIPString(s string) error {
-	if ip := net.ParseIP(s); ip != nil {
-		f.AddIP(ip)
-		return nil
+	ip := net.ParseIP(s)
+	if ip == nil {
+		return errors.New("Parse IP Error: " + s)
 	}
-	return errors.New(fmt.Sprintf("Parse IP Error: %s", s))
+	f.AddIP(ip)
+	return nil
 }
