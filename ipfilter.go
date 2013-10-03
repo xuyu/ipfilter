@@ -26,7 +26,11 @@ func (f *IPFilter) FilterIP(ip net.IP) bool {
 }
 
 func (f *IPFilter) FilterIPString(s string) bool {
-	return f.FilterIP(net.ParseIP(s))
+	ip := net.ParseIP(s)
+	if ip == nil {
+		return false
+	}
+	return f.FilterIP(ip)
 }
 
 func (f *IPFilter) AddIPNet(item net.IPNet) {
