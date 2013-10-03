@@ -1,9 +1,11 @@
 package ipfilter
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
+	"io/ioutil"
 	"net"
+	"net/http"
 )
 
 type IPFilter struct {
@@ -57,4 +59,40 @@ func (f *IPFilter) AddIPString(s string) error {
 	}
 	f.AddIP(ip)
 	return nil
+}
+
+func (f *IPFilter) Load(data []byte) error {
+	for _, item := range bytes.Fields(data) {
+		if bytes.IndexByte(item, '/') < 0 {
+			if err := f.AddIPString(string(item)); err != nil {
+				return err
+			}
+		} else {
+			if err := f.AddIPNetString(string(item)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (f *IPFilter) LoadFile(filename string) error {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil
+	}
+	return f.Load(data)
+}
+
+func (f *IPFilter) LoadHttp(url string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	return f.Load(data)
 }
